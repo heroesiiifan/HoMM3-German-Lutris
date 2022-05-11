@@ -1,0 +1,84 @@
+name: HoMM3 HD
+game_slug: homm3
+version: latest
+slug: homm3-latest
+description: Heroes of Might and Magic 3
+runner: wine
+script:
+  files:
+  - installer: N/A:Select the game's setup file
+  - hota_setup:
+      filename: hota.exe
+      url: https://www.vault.acidcave.net/download.php?id=614
+  - hd_setup:
+      filename: hd.exe
+      url: http://vm914332.had.yt/HoMM3_HD_Latest_setup.exe
+  - german: https://github.com/heroesiiifan/HoMM3-German/releases/latest/download/HoMM3DE_RELEASE.7z
+  game:
+    exe: drive_c/GOG Games/HoMM 3 Complete/HD_Launcher.exe
+    prefix: $GAMEDIR
+  installer:
+  - task:
+      description: Creating WINE prefix
+      name: create_prefix
+      prefix: $GAMEDIR
+  - task:
+      args: /VERYSILENT
+      description: "Running Setup, please wait\u2026"
+      executable: installer
+      name: wineexec
+  - task:
+      args: /VERYSILENT /DIR="C:\GOG Games\HoMM 3 Complete"
+      description: "Running HotA setup, please wait\u2026"
+      executable: hota_setup
+      name: wineexec
+  - task:
+      args: /VERYSILENT /DIR="C:\GOG Games\HoMM 3 Complete"
+      description: "Running HD setup, please wait\u2026"
+      executable: hd_setup
+      name: wineexec
+  - extract:
+      arch: win32
+      dst: $CACHE/german
+      file: german
+      format: 7z
+  - extract:
+      arch: win32
+      dst: $CACHE/german_hd
+      file: $CACHE/german/_out/HoMM3DE_HD.zip
+      format: zip
+  - merge:
+      dst: $GAMEDIR/drive_c/GOG Games/HoMM 3 Complete/_HD3_Data/
+      src: $CACHE/german_hd
+  - merge:
+      dst: $GAMEDIR/drive_c/GOG Games/HoMM 3 Complete/Maps/
+      src: $GAMEDIR/drive_c/GOG Games/HoMM 3 Complete/_HD3_Data/_Custom_Campaign
+  - extract:
+      arch: win32
+      dst: $CACHE/german_hota
+      file: $CACHE/german/_out/HoMM3DE_HotA.zip
+      format: zip
+  - move:
+      dst: $CACHE/Maps/
+      src: $CACHE/german_hota/Maps
+  - merge:
+      dst: $GAMEDIR/drive_c/GOG Games/HoMM 3 Complete/Data/
+      src: $CACHE/german_hota
+  - merge:
+      dst: $GAMEDIR/drive_c/GOG Games/HoMM 3 Complete/Maps/
+      src: $CACHE/Maps
+  - execute:
+      command: cp "$GAMEDIR/drive_c/GOG Games/HoMM 3 Complete/_HD3_Data/Settings/#default#hota.ini"
+        "$GAMEDIR/drive_c/GOG Games/HoMM 3 Complete/_HD3_Data/Settings/hota.ini"
+  - execute:
+      command: sed -i -E "s/(<Language> = \"#)en(\.ini\")/\1de\2/" "$GAMEDIR/drive_c/GOG
+        Games/HoMM 3 Complete/_HD3_Data/Settings/hota.ini"
+  - execute:
+      command: cp "$GAMEDIR/drive_c/GOG Games/HoMM 3 Complete/_HD3_Data/Settings/#default#sod.ini"
+        "$GAMEDIR/drive_c/GOG Games/HoMM 3 Complete/_HD3_Data/Settings/sod.ini"
+  - execute:
+      command: sed -i -E "s/(<Language> = \"#)en(\.ini\")/\1de\2/" "$GAMEDIR/drive_c/GOG
+        Games/HoMM 3 Complete/_HD3_Data/Settings/sod.ini"
+  - execute:
+      command: sed -i -E "s/(<Packs>)/\1 = \"German\"/" "$GAMEDIR/drive_c/GOG Games/HoMM
+        3 Complete/_HD3_Data/Settings/sod.ini"
